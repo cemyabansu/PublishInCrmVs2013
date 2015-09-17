@@ -4,7 +4,7 @@
 library
 C#
 .cs
-E:\Github\PublishInCrmVs2013\PublishInCrm\PublishInCrm\obj\Debug\
+E:\Workspaces\Other\PublishInCrm\PublishInCrm\PublishInCrm\obj\Debug\
 CemYabansu.PublishInCrm
 none
 false
@@ -12,8 +12,8 @@ DEBUG;TRACE
 
 4777966343
 2-315817485
-15633130587
-39-734469741
+151987724463
+39864770312
 Resources\Icons.xaml;Windows\CreateWebResourceWindow.xaml;Windows\OutputWindow.xaml;Windows\UserCredential.xaml;
 
 False
