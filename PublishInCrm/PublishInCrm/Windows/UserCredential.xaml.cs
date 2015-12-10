@@ -49,11 +49,12 @@ namespace CemYabansu.PublishInCrm.Windows
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            var selectedConnectionString = ConnectionStringCombobox.Text;
             var selectedOrganizationUrl = _organizationsDictionary[(string)OrganizationsComboBox.SelectedValue];
-            System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl));
+            System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionString));
         }
 
-        private async void SaveConnectionString(string selectedOrganizationUrl)
+        private async void SaveConnectionString(string selectedOrganizationUrl, string connectionStringTag)
         {
             SetEnableToUIElement(SaveButton, false);
             var connectionString = string.Format("Server={0}; Domain={1}; Username={2}; Password={3}",
@@ -71,25 +72,34 @@ namespace CemYabansu.PublishInCrm.Windows
                 return;
             }
 
-            WriteConnectionStringToFile(_projectPath, ConnectionString, _savePath);
+            WriteConnectionStringToFile(connectionStringTag, ConnectionString, _savePath);
             Dispatcher.Invoke(Close);
         }
 
-        private void WriteConnectionStringToFile(string projectName, string connectionString, string path)
+        private void WriteConnectionStringToFile(string connectionStringTag, string connectionString, string path)
         {
+            string filePath = path + "\\credential.xml";
+
             var xmlDoc = new XmlDocument();
+
             var rootNode = xmlDoc.CreateElement("connectionString");
             xmlDoc.AppendChild(rootNode);
 
+            if (File.Exists(filePath))
+            {
+                // TODO: Read existing file and append the existing connection strings, then append the new string.
+            }
+
             var nameNode = xmlDoc.CreateElement("name");
-            nameNode.InnerText = projectName;
+            nameNode.InnerText = _projectPath;
             rootNode.AppendChild(nameNode);
 
             var connectionStringNode = xmlDoc.CreateElement("string");
             connectionStringNode.InnerText = connectionString;
+            connectionStringNode.SetAttribute("tag", connectionStringTag);
             rootNode.AppendChild(connectionStringNode);
 
-            xmlDoc.Save(path + "\\credential.xml");
+            xmlDoc.Save(filePath);
         }
 
         public bool TestConnection(string server, string domain, string username, string password)

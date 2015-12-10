@@ -93,12 +93,13 @@ namespace CemYabansu.PublishInCrm
             }
 
             //getting connection string
+            // Get default connection string
             var solutionPath = GetSolutionPath();
             var connectionString = GetConnectionString(solutionPath);
             if (connectionString == string.Empty)
             {
-                SetConnectionLabelText("Connection string is not found.", _error);
-                AddErrorLineToOutputWindow("Error : Connection string is not found.");
+                SetConnectionLabelText("Connection string was not provided.", _error);
+                AddErrorLineToOutputWindow("Error : Connection string was not provided.");
 
                 var userCredential = new UserCredential(solutionPath);
                 userCredential.ShowDialog();
@@ -118,6 +119,47 @@ namespace CemYabansu.PublishInCrm
             thread.Start();
         }
 
+        private void PublishInCrm(bool isFromSolutionExplorer, string connectionString)
+        {
+            _outputWindow = new OutputWindow();
+            _outputWindow.Show();
+
+            //getting selected files
+            List<string> selectedFiles = GetSelectedFilesPath(isFromSolutionExplorer);
+
+            //checking selected files extensions 
+            var inValidFiles = CheckFilesExtension(selectedFiles);
+            if (inValidFiles.Count > 0)
+            {
+                AddErrorToOutputWindow(string.Format("Invalid file extensions : {0}", string.Join(", ", inValidFiles)));
+                AddErrorLineToOutputWindow(string.Format("Error : Invalid file extensions : \n\t- {0}", string.Join("\n\t- ", inValidFiles)));
+                return;
+            }
+
+            // Check connection string
+            if (connectionString == string.Empty)
+            {
+                SetConnectionLabelText("Connection string was not provided.", _error);
+                AddErrorLineToOutputWindow("Error : Connection string was not provided.");
+
+                var userCredential = new UserCredential(GetSolutionPath());
+                userCredential.ShowDialog();
+
+                if (string.IsNullOrEmpty(userCredential.ConnectionString))
+                {
+                    SetConnectionLabelText("Connection failed.", _error);
+                    AddErrorLineToOutputWindow("Error : Connection failed.");
+                    return;
+                }
+                connectionString = userCredential.ConnectionString;
+            }
+
+            //updating/creating files one by one
+            var thread = new Thread(o => UpdateWebResources(connectionString, selectedFiles));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+        }
+        
         /// <returns>List of selected file or active file</returns>
         private List<string> GetSelectedFilesPath(bool isFromSolutionExplorer)
         {
@@ -164,11 +206,36 @@ namespace CemYabansu.PublishInCrm
         }
 
         /// <summary>
+        /// Gets the closest "credential.xml" file to the current project.
+        /// </summary>
+        /// <returns>The full path of the "credential.xml" file.</returns>
+        private string GetCredentialsFilePath()
+        {
+            string projectPath = GetSolutionPath();
+
+            if (Path.HasExtension(projectPath))
+                projectPath = Path.GetDirectoryName(projectPath);
+
+            var filePath = projectPath + "\\credential.xml";
+
+            while (!File.Exists(filePath))
+            {
+                projectPath = Directory.GetParent(projectPath).FullName;
+                
+                if (projectPath == Path.GetPathRoot(projectPath)) 
+                    return string.Empty;
+                
+                filePath = projectPath + "\\credential.xml";
+            }
+
+            return filePath;
+        }
+
+        /// <summary>
         /// This function reads the projectPath\credential.xml file.
         /// Gets the connection string and return it. If it doesn't exist, returns String.Empty
         /// </summary>
         /// <param name="projectPath">Path of project file.</param>
-
         private string GetConnectionString(string projectPath)
         {
             if (Path.HasExtension(projectPath))
@@ -211,6 +278,33 @@ namespace CemYabansu.PublishInCrm
                 return reStr;
             }
             return string.Empty;
+        }
+
+        private Dictionary<string, string> GetAvailableConnectionStrings()
+        {
+            var connectionStrings = new Dictionary<string, string>();
+            try
+            {
+                XmlDocument credentialsXml = new XmlDocument();
+                credentialsXml.LoadXml(File.ReadAllText(GetCredentialsFilePath()));
+
+                foreach(XmlNode node in credentialsXml.GetElementsByTagName("string")) {
+
+                    string tag = node.Attributes["tag"].Value;
+                    string connectionString = node.ChildNodes[0].Value;
+
+                    connectionStrings.Add(tag, connectionString);
+                }
+            }
+            catch
+            {
+                // TODO: Add an error logging & handling mechanism.
+                
+                // Replacing connection strings dictionary with an empty one.
+                connectionStrings = new Dictionary<string, string>();
+            }
+
+            return connectionStrings;
         }
 
         private void UpdateWebResources(string connectionString, List<string> selectedFiles)
