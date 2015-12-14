@@ -43,7 +43,7 @@ namespace CemYabansu.PublishInCrm.Windows
             _projectPath = solutionPath;
             _savePath = (_projectPath.EndsWith(".sln")) ? Path.GetDirectoryName(solutionPath) : solutionPath;
 
-            RetrieveProfiles(_projectPath);
+            RetrieveProfiles(_savePath);
             InitializeProfileList();
         }
 
@@ -145,7 +145,7 @@ namespace CemYabansu.PublishInCrm.Windows
 
             return new ConnectionProfile
             {
-                Tag = element.GetAttribute("tag"),
+                Tag = !string.IsNullOrEmpty(element.GetAttribute("tag")) ? element.GetAttribute("tag") : "(unnamed)",
                 IsDefault = element.GetAttribute("default").Equals(true.ToString()),
                 ServerUrl = atoms["Server"],
                 Port = atoms["Port"],
