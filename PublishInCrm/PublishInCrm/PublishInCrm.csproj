@@ -145,6 +145,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectionProfile.cs" />
     <Compile Include="CrmSdkTypes.cs" />
     <Compile Include="DeviceIdManager.cs" />
     <Compile Include="Guids.cs" />
@@ -191,6 +192,7 @@
   <ItemGroup>
     <VSCTCompile Include="PublishInCrm.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>

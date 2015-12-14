@@ -52,17 +52,51 @@ namespace CemYabansu.PublishInCrm
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)
             {
+
                 // Create the command for the publish in crm.
                 CommandID publishInCrmCommandID = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishInCrm);
-                MenuCommand publishInCrmMenuItem = new MenuCommand(PublishInCrmCallback, publishInCrmCommandID);
-                mcs.AddCommand(publishInCrmMenuItem);
+                MenuCommand publishInCrm = new MenuCommand(PublishInCrmCallback, publishInCrmCommandID);
+                mcs.AddCommand(publishInCrm);
 
                 // Create the command for the publish in crm(solution explorer).
                 CommandID publishInCrmMultipleCommandID = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishInCrmMultiple);
-                MenuCommand publishInCrmMultipleMenuItem = new MenuCommand(PublishInCrmMultipleCallback, publishInCrmMultipleCommandID);
-                mcs.AddCommand(publishInCrmMultipleMenuItem);
+                MenuCommand publishInCrmMultiple = new MenuCommand(PublishInCrmMultipleCallback, publishInCrmMultipleCommandID);
+                mcs.AddCommand(publishInCrmMultiple);
 
+                CommandID publishToDefaultOrganizationCommandID = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishInDefaultOrganization);
+                MenuCommand publishToDefaultOrganization = new MenuCommand(PublishInCrmCallback, publishToDefaultOrganizationCommandID);
+                mcs.AddCommand(publishToDefaultOrganization);
+
+                CommandID publishToDefaultOrganizationMultipleCommandID = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishInDefaultOrganizationMultiple);
+                MenuCommand publishToDefaultOrganizationMultiple = new MenuCommand(PublishInCrmMultipleCallback, publishToDefaultOrganizationMultipleCommandID);
+                mcs.AddCommand(publishToDefaultOrganizationMultiple);
+
+                CommandID publishToCmd = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishIn);
+                MenuCommand publishTo = new MenuCommand(PublishToCallback, publishToCmd);
+                mcs.AddCommand(publishTo);
+
+                CommandID publishToMultipleCmd = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishInMultiple);
+                MenuCommand publishToMultiple = new MenuCommand(PublishToCallback, publishToMultipleCmd);
+                mcs.AddCommand(publishToMultiple);
+
+                CommandID manageConProfilesCmd = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidManageConnectionProfiles);
+                MenuCommand manageConProfiles = new MenuCommand(ManageConnectionProfilesCallback, manageConProfilesCmd);
+                mcs.AddCommand(manageConProfiles);
+
+                CommandID manageConProfilesMultipleCmd = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidManageConnectionProfilesMultiple);
+                MenuCommand manageConProfilesMultiple = new MenuCommand(ManageConnectionProfilesCallback, manageConProfilesMultipleCmd);
+                mcs.AddCommand(manageConProfilesMultiple);
             }
+        }
+
+        private void PublishToCallback(object sender, EventArgs e)
+        {
+            // TODO: Implement "Publish To ..." functionality
+        }
+
+        private void ManageConnectionProfilesCallback(object sender, EventArgs e)
+        {
+            (new UserCredential(GetSolutionPath())).ShowDialog();
         }
 
         private void PublishInCrmMultipleCallback(object sender, EventArgs e)
@@ -280,6 +314,10 @@ namespace CemYabansu.PublishInCrm
             return string.Empty;
         }
 
+        /// <summary>
+        /// Gets available connection strings from the closest "credential.xml" file.
+        /// </summary>
+        /// <returns>A dictionary of connection strings identified by tags.</returns>
         private Dictionary<string, string> GetAvailableConnectionStrings()
         {
             var connectionStrings = new Dictionary<string, string>();

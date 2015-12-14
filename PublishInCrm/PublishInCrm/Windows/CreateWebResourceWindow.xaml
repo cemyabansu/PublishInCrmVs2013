@@ -4,7 +4,7 @@
         xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         BorderBrush="{DynamicResource AccentColorBrush}"
         BorderThickness="1"
-        Title="Create WebResource" Height="327.309" Width="410.043" ResizeMode="CanMinimize">
+        Title="Create new web resource" Height="327.309" Width="410.043" ResizeMode="CanMinimize">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,20 +13,24 @@
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
-        <Label Content="Create WebResource" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="48" Width="211" FontSize="20" FontWeight="Bold"/>
-        <TextBox x:Name="NameTextBox" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="123,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="271"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="74*"/>
+            <ColumnDefinition Width="127*"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Create new web resource" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="48" Width="382" FontSize="20" FontWeight="Bold" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="NameTextBox" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="123,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="271" Grid.ColumnSpan="2"/>
         <Label Content="Name&#x9;&#x9;:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,63,0,0" Width="108"/>
-        <TextBox x:Name="DisplayNameTextBox" HorizontalAlignment="Left" Height="23" Margin="123,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="271" />
+        <TextBox x:Name="DisplayNameTextBox" HorizontalAlignment="Left" Height="23" Margin="123,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="271" Grid.ColumnSpan="2" />
         <Label Content="Display Name&#x9;:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,94,0,0" Width="108"/>
-        <TextBox x:Name="DescriptionTextBox" HorizontalAlignment="Left" Height="76" Margin="123,128,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="271" />
+        <TextBox x:Name="DescriptionTextBox" HorizontalAlignment="Left" Height="76" Margin="123,128,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="271" Grid.ColumnSpan="2" />
         <Label Content="Description&#x9;:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,125,0,0" Width="108"/>
         <Label Content="Type&#x9;&#x9;:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,209,0,0" Width="108"/>
-        <ComboBox x:Name="TypeComboBox" HorizontalAlignment="Left" Margin="123,213,0,0" VerticalAlignment="Top" Width="271" Text="Choose Type" >
+        <ComboBox x:Name="TypeComboBox" HorizontalAlignment="Left" Margin="123,213,0,0" VerticalAlignment="Top" Width="271" Text="Choose Type" Grid.ColumnSpan="2" >
             <ComboBoxItem Tag="1">Html(1)</ComboBoxItem>
             <ComboBoxItem Tag="2">Css(2)</ComboBoxItem>
             <ComboBoxItem Tag="3">Javascript(3)</ComboBoxItem>
         </ComboBox>
-        <Button x:Name="CreateButton" Content="Create" HorizontalAlignment="Left" Margin="229,257,0,0" VerticalAlignment="Top" Width="80" Height="30" Click="CreateButton_Click"/>
-        <Button x:Name="CancelButton" Content="Cancel" HorizontalAlignment="Left" Margin="314,257,0,0" VerticalAlignment="Top" Width="80" Height="30" Click="CancelButton_Click"/>
+        <Button x:Name="CreateButton" Content="Create" HorizontalAlignment="Left" Margin="81,257,0,0" VerticalAlignment="Top" Width="80" Height="30" Click="CreateButton_Click" Grid.Column="1"/>
+        <Button x:Name="CancelButton" Content="Cancel" HorizontalAlignment="Left" Margin="166,257,0,0" VerticalAlignment="Top" Width="80" Height="30" Click="CancelButton_Click" Grid.Column="1"/>
     </Grid>
 </controls:MetroWindow>

@@ -15,6 +15,7 @@ using Microsoft.Xrm.Sdk.Discovery;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Task = System.Threading.Tasks.Task;
+using System.Text.RegularExpressions;
 
 //For login, I used microsoft's code which is in CRM SDK.
 
@@ -33,13 +34,127 @@ namespace CemYabansu.PublishInCrm.Windows
         private string _serverUrl;
         private string _portNumber;
         private bool _isSsl;
+        private List<ConnectionProfile> _profiles;
 
         public UserCredential(string solutionPath)
         {
             InitializeComponent();
 
             _projectPath = solutionPath;
-            _savePath = Path.GetDirectoryName(solutionPath);
+            _savePath = (_projectPath.EndsWith(".sln")) ? Path.GetDirectoryName(solutionPath) : solutionPath;
+
+            RetrieveProfiles(_projectPath);
+            InitializeProfileList();
+        }
+
+        private void InitializeProfileList()
+        {
+            // Refill the combobox
+            ConnectionStringCombobox.Items.Clear();
+            foreach (var profile in _profiles)
+            {
+                ConnectionStringCombobox.Items.Add(profile.Tag);
+            }
+
+            var defaultProfile = _profiles.Find(p => p.IsDefault);
+
+            if (defaultProfile != null)
+            {
+                ConnectionStringCombobox.SelectedItem = defaultProfile.Tag;
+                InitializeInputs(defaultProfile);
+            }
+        }
+
+        private void InitializeInputs(ConnectionProfile profile)
+        {
+            DefaultProfileCheckBox.IsChecked = profile.IsDefault;
+            ServerTextBox.Text = profile.ServerUrl;
+            PortTextBox.Text = profile.Port;
+            SslCheckBox.IsChecked = profile.UseSSL;
+            DomainTextBox.Text = profile.Domain;
+            UsernameTextBox.Text = profile.Username;
+            PasswordTextBox.Password = profile.Password;
+        }
+
+        private void RetrieveProfiles(string path)
+        {
+            _profiles = new List<ConnectionProfile>();
+            string filePath = path + "\\credential.xml";
+            if (File.Exists(filePath))
+            {
+                var document = new XmlDocument();
+                document.LoadXml(File.ReadAllText(filePath));
+                foreach (XmlNode node in document.GetElementsByTagName("string"))
+                {
+                    var profile = ParseElement(node as XmlElement);
+                    _profiles.Add(profile);
+                }
+            }
+        }
+
+        private ConnectionProfile ParseElement(XmlElement element)
+        {
+            string connectionString = element.InnerText;
+            Dictionary<string, string> atoms = new Dictionary<string, string>();
+            
+            foreach (string molecule in connectionString.Split(';'))
+            {
+                string [] atom = molecule.Split('=');
+                atoms.Add(atom[0].Trim(), atom[1].Trim());
+            }
+
+            atoms.Add("Port", "");
+            atoms.Add("UseSSL", "");
+            atoms.Add("OrganizationName", "");
+
+            if(atoms.ContainsKey("Server")) 
+            {
+                var serverUrl = atoms["Server"];
+                
+                // Parse the server url with a regular expression.
+                // Accepts IFD and non-IFD URLs, e.g. :
+                // http(s)://myorg.contoso.com
+                // http(s)://www.contoso.com/myorg
+                // http(s)://myorg.contoso.com:9999
+                // http(s)://www.contoso.com:9999/myorg
+                // The groupings for this regular expression is below.
+                // +--------------+---------------+
+                // |    Data      |    Groups     |
+                // |    Type      | (IFD/Non-IFD) |
+                // | -------------|---------------|
+                // | Protocol     |     3 / 11    |                
+                // | ServerUrl    |     4 / 12    |
+                // | OrgName      |     5 / 15    |
+                // | Port Number  |     8 / 14    |
+                // +--------------+---------------+
+                string urlExpression = @"^(((http|https):\/\/)(([a-zA-Z0-9]+)\.([a-zA-Z0-9\.]+))(:(\d+))?)\/?$|^(((http|https):\/\/)([a-zA-Z0-9\.]+)(:(\d+))?\/([a-zA-Z0-9]+))$";
+                var match = Regex.Match(serverUrl, urlExpression);
+                
+                if(match.Success) {
+                    string protocol = match.Groups[3].Value + match.Groups[11].Value;
+                    string server = match.Groups[4].Value + match.Groups[12].Value;
+                    string orgName = match.Groups[5].Value + match.Groups[15].Value;
+                    string port = match.Groups[8].Value + match.Groups[14].Value;
+
+                    atoms["Server"] = server;
+                    atoms["Port"] = port;
+                    atoms["UseSSL"] = protocol.Equals("https").ToString();
+                    atoms["OrganizationName"] = orgName;
+                }
+            }
+
+            return new ConnectionProfile
+            {
+                Tag = element.GetAttribute("tag"),
+                IsDefault = element.GetAttribute("default").Equals(true.ToString()),
+                ServerUrl = atoms["Server"],
+                Port = atoms["Port"],
+                UseSSL = atoms["UseSSL"].Equals(true.ToString()),
+                Domain = atoms["Domain"],
+                Username = atoms["Username"],
+                Password = atoms["Password"],
+                OrganizationName = atoms["OrganizationName"]
+            };
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -49,12 +164,15 @@ namespace CemYabansu.PublishInCrm.Windows
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedConnectionString = ConnectionStringCombobox.Text;
+            var selectedConnectionStringTag = ConnectionStringCombobox.Text;
             var selectedOrganizationUrl = _organizationsDictionary[(string)OrganizationsComboBox.SelectedValue];
-            System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionString));
+
+            bool isDefault = DefaultProfileCheckBox.IsChecked ?? false;
+
+            System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionStringTag, isDefault));
         }
 
-        private async void SaveConnectionString(string selectedOrganizationUrl, string connectionStringTag)
+        private async void SaveConnectionString(string selectedOrganizationUrl, string connectionStringTag, bool isDefault)
         {
             SetEnableToUIElement(SaveButton, false);
             var connectionString = string.Format("Server={0}; Domain={1}; Username={2}; Password={3}",
@@ -72,34 +190,52 @@ namespace CemYabansu.PublishInCrm.Windows
                 return;
             }
 
-            WriteConnectionStringToFile(connectionStringTag, ConnectionString, _savePath);
+            WriteConnectionStringToFile(connectionStringTag, ConnectionString, _savePath, isDefault);
             Dispatcher.Invoke(Close);
         }
 
-        private void WriteConnectionStringToFile(string connectionStringTag, string connectionString, string path)
+        private void WriteConnectionStringToFile(string connectionStringTag, string connectionString, string path, bool isDefault)
         {
             string filePath = path + "\\credential.xml";
 
-            var xmlDoc = new XmlDocument();
+            var newDoc = new XmlDocument();
 
-            var rootNode = xmlDoc.CreateElement("connectionString");
-            xmlDoc.AppendChild(rootNode);
+            var rootNode = newDoc.CreateElement("connectionString");
+            newDoc.AppendChild(rootNode);
 
-            if (File.Exists(filePath))
-            {
-                // TODO: Read existing file and append the existing connection strings, then append the new string.
-            }
-
-            var nameNode = xmlDoc.CreateElement("name");
+            var nameNode = newDoc.CreateElement("name");
             nameNode.InnerText = _projectPath;
             rootNode.AppendChild(nameNode);
 
-            var connectionStringNode = xmlDoc.CreateElement("string");
+            // Append the active connection string first.
+            var connectionStringNode = newDoc.CreateElement("string");
             connectionStringNode.InnerText = connectionString;
             connectionStringNode.SetAttribute("tag", connectionStringTag);
+            connectionStringNode.SetAttribute("default", isDefault.ToString());
             rootNode.AppendChild(connectionStringNode);
 
-            xmlDoc.Save(filePath);
+            // If the credential file exists, append the other profiles as well.
+            if (File.Exists(filePath))
+            {
+                var existingDoc = new XmlDocument();
+                existingDoc.LoadXml(File.ReadAllText(filePath));
+                foreach (XmlNode node in existingDoc.GetElementsByTagName("string"))
+                {
+                    // Skip the active profile as it's already been appended.
+                    if (node.Attributes["tag"] != null && node.Attributes["tag"].Value != connectionStringTag)
+                    {
+                        // If the one we are editing is the default profile, we must set the default properties of other profiles to false.
+                        if (isDefault)
+                        {
+                            ((XmlElement)node).SetAttribute("default", false.ToString());
+                        }
+                        var importedNode = newDoc.ImportNode(node, true);
+                        rootNode.AppendChild(importedNode);
+                    }
+                }
+            }
+
+            newDoc.Save(filePath);
         }
 
         public bool TestConnection(string server, string domain, string username, string password)
@@ -137,6 +273,7 @@ namespace CemYabansu.PublishInCrm.Windows
 
             System.Threading.Tasks.Task.Factory.StartNew(GetOrganizationsTask);
 
+            CheckDefaultOrganization();
         }
 
         private void PrepareUiForGetOrganizations()
@@ -161,6 +298,7 @@ namespace CemYabansu.PublishInCrm.Windows
         private async void GetOrganizationsTask()
         {
             var result = await System.Threading.Tasks.Task.FromResult(GetOrganizations());
+
 
             SetEnableToUIElement(SaveButton, result.Item1);
             EnableComboBox(result.Item1);
@@ -205,11 +343,32 @@ namespace CemYabansu.PublishInCrm.Windows
                     AddItemToComboBox(org.FriendlyName);
                     _organizationsDictionary.Add(org.FriendlyName, org.Endpoints[EndpointType.WebApplication]);
                 }
+
                 return Tuple.Create(true, "Successfully connected.");
             }
             catch (Exception)
             {
                 return Tuple.Create(false, "Error : Connection failed.");
+            }
+        }
+
+        private void CheckDefaultOrganization()
+        {
+            var selectedProfileName = ConnectionStringCombobox.Text;
+            var selectedProfile = _profiles.Find(p => p.Tag.Equals(selectedProfileName));
+
+            if (selectedProfile != null)
+            {
+                if (!string.IsNullOrEmpty(selectedProfile.OrganizationName))
+                {
+                    for (int i = 0; i < OrganizationsComboBox.Items.Count; i++)
+                    {
+                        if (OrganizationsComboBox.Items[i] == selectedProfile.OrganizationName)
+                        {
+                            OrganizationsComboBox.SelectedIndex = i;
+                        }
+                    }
+                }
             }
         }
 
@@ -357,6 +516,18 @@ namespace CemYabansu.PublishInCrm.Windows
         private void SetEnableToUIElement(UIElement button, bool isEnable)
         {
             Dispatcher.Invoke(() => button.IsEnabled = isEnable);
+        }
+
+        private void ConnectionStringCombobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string tag = (ConnectionStringCombobox.SelectedItem ?? string.Empty).ToString();
+
+            var profile = _profiles.Find(p => p.Tag.Equals(tag));
+
+            if (profile != null)
+            {
+                InitializeInputs(profile);
+            }
         }
     }
 }
