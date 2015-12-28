@@ -145,7 +145,8 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionProfile.cs" />
+    <Compile Include="Controls\CheckedListItem.cs" />
+    <Compile Include="Models\ConnectionProfile.cs" />
     <Compile Include="CrmSdkTypes.cs" />
     <Compile Include="DeviceIdManager.cs" />
     <Compile Include="Guids.cs" />
@@ -164,8 +165,11 @@
     <Compile Include="Windows\OutputWindow.xaml.cs">
       <DependentUpon>OutputWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\UserCredential.xaml.cs">
-      <DependentUpon>UserCredential.xaml</DependentUpon>
+    <Compile Include="Windows\SelectOrganizationsWindow.xaml.cs">
+      <DependentUpon>SelectOrganizationsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ManageConnectionProfilesWindow.xaml.cs">
+      <DependentUpon>ManageConnectionProfilesWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -219,7 +223,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\UserCredential.xaml">
+    <Page Include="Windows\SelectOrganizationsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ManageConnectionProfilesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

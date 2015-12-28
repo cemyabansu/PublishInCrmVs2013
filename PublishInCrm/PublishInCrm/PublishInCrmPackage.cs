@@ -91,12 +91,17 @@ namespace CemYabansu.PublishInCrm
 
         private void PublishToCallback(object sender, EventArgs e)
         {
-            // TODO: Implement "Publish To ..." functionality
+            var window = new SelectOrganizationsWindow(GetSolutionPath());
+            bool? publish = window.ShowDialog();
+            if (publish.HasValue && publish.Value)
+            {
+                
+            }
         }
 
         private void ManageConnectionProfilesCallback(object sender, EventArgs e)
         {
-            (new UserCredential(GetSolutionPath())).ShowDialog();
+            (new ManageConnectionProfilesWindow(GetSolutionPath())).ShowDialog();
         }
 
         private void PublishInCrmMultipleCallback(object sender, EventArgs e)
@@ -135,7 +140,7 @@ namespace CemYabansu.PublishInCrm
                 SetConnectionLabelText("Connection string was not provided.", _error);
                 AddErrorLineToOutputWindow("Error : Connection string was not provided.");
 
-                var userCredential = new UserCredential(solutionPath);
+                var userCredential = new ManageConnectionProfilesWindow(solutionPath);
                 userCredential.ShowDialog();
 
                 if (string.IsNullOrEmpty(userCredential.ConnectionString))
@@ -176,7 +181,7 @@ namespace CemYabansu.PublishInCrm
                 SetConnectionLabelText("Connection string was not provided.", _error);
                 AddErrorLineToOutputWindow("Error : Connection string was not provided.");
 
-                var userCredential = new UserCredential(GetSolutionPath());
+                var userCredential = new ManageConnectionProfilesWindow(GetSolutionPath());
                 userCredential.ShowDialog();
 
                 if (string.IsNullOrEmpty(userCredential.ConnectionString))

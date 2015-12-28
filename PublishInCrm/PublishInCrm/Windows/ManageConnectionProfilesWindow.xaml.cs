@@ -21,7 +21,7 @@ using System.Text.RegularExpressions;
 
 namespace CemYabansu.PublishInCrm.Windows
 {
-    public partial class UserCredential
+    public partial class ManageConnectionProfilesWindow
     {
         private Dictionary<string, string> _organizationsDictionary;
         public string ConnectionString { get; set; }
@@ -36,7 +36,7 @@ namespace CemYabansu.PublishInCrm.Windows
         private bool _isSsl;
         private List<ConnectionProfile> _profiles;
 
-        public UserCredential(string solutionPath)
+        public ManageConnectionProfilesWindow(string solutionPath)
         {
             InitializeComponent();
 
@@ -261,7 +261,7 @@ namespace CemYabansu.PublishInCrm.Windows
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -363,7 +363,7 @@ namespace CemYabansu.PublishInCrm.Windows
                 {
                     for (int i = 0; i < OrganizationsComboBox.Items.Count; i++)
                     {
-                        if (OrganizationsComboBox.Items[i] == selectedProfile.OrganizationName)
+                        if ((OrganizationsComboBox.Items[i] ?? string.Empty).ToString() == selectedProfile.OrganizationName)
                         {
                             OrganizationsComboBox.SelectedIndex = i;
                         }

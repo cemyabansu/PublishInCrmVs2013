@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CemYabansu.PublishInCrm
 {
-    class ConnectionProfile
+    public class ConnectionProfile
     {
         public string Tag { get; set; }
         public string ServerUrl { get; set; }
