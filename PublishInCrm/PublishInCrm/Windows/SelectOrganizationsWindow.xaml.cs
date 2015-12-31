@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Xml;
 using CemYabansu.PublishInCrm.Controls;
+using CemYabansu.PublishInCrm.Helpers;
 
 namespace CemYabansu.PublishInCrm.Windows
 {
@@ -24,6 +25,7 @@ namespace CemYabansu.PublishInCrm.Windows
     /// </summary>
     public partial class SelectOrganizationsWindow
     {
+        private ProfileManager ProfileManager { get; set; }
 
         public ObservableCollection<CheckedListItem<ConnectionProfile>> ProfileItems { get; set; }
 
@@ -35,91 +37,14 @@ namespace CemYabansu.PublishInCrm.Windows
             if (path.EndsWith(".sln"))
                 path = System.IO.Path.GetDirectoryName(path);
 
-            GetProfiles(path);
+            ProfileManager = new ProfileManager(path);
+
+            foreach (var profile in ProfileManager.Profiles)
+            {
+                ProfileItems.Add(new CheckedListItem<ConnectionProfile>(profile));
+            }
 
             DataContext = this;
-        }
-
-        private void GetProfiles(string path)
-        {
-            // TODO: Need a helper class for this type of XML actions.
-            string filePath = path + "\\credential.xml";
-            if (File.Exists(filePath))
-            {
-                ProfileItems = new ObservableCollection<CheckedListItem<ConnectionProfile>>();
-                var document = new XmlDocument();
-                document.LoadXml(File.ReadAllText(filePath));
-                foreach (XmlNode node in document.GetElementsByTagName("string"))
-                {
-                    var profile = ParseElement(node as XmlElement);
-                    ProfileItems.Add(new CheckedListItem<ConnectionProfile>(profile));
-                }
-            }
-        }
-
-        private ConnectionProfile ParseElement(XmlElement element)
-        {
-            string connectionString = element.InnerText;
-            Dictionary<string, string> atoms = new Dictionary<string, string>();
-            
-            foreach (string molecule in connectionString.Split(';'))
-            {
-                string [] atom = molecule.Split('=');
-                atoms.Add(atom[0].Trim(), atom[1].Trim());
-            }
-
-            atoms.Add("Port", "");
-            atoms.Add("UseSSL", "");
-            atoms.Add("OrganizationName", "");
-
-            if(atoms.ContainsKey("Server")) 
-            {
-                var serverUrl = atoms["Server"];
-                
-                // Parse the server url with a regular expression.
-                // Accepts IFD and non-IFD URLs, e.g. :
-                // http(s)://myorg.contoso.com
-                // http(s)://www.contoso.com/myorg
-                // http(s)://myorg.contoso.com:9999
-                // http(s)://www.contoso.com:9999/myorg
-                // The groupings for this regular expression is below.
-                // +--------------+---------------+
-                // |    Data      |    Groups     |
-                // |    Type      | (IFD/Non-IFD) |
-                // | -------------|---------------|
-                // | Protocol     |     3 / 11    |                
-                // | ServerUrl    |     4 / 12    |
-                // | OrgName      |     5 / 15    |
-                // | Port Number  |     8 / 14    |
-                // +--------------+---------------+
-                string urlExpression = @"^(((http|https):\/\/)(([a-zA-Z0-9]+)\.([a-zA-Z0-9\.]+))(:(\d+))?)\/?$|^(((http|https):\/\/)([a-zA-Z0-9\.]+)(:(\d+))?\/([a-zA-Z0-9]+))$";
-                var match = Regex.Match(serverUrl, urlExpression);
-                
-                if(match.Success) {
-                    string protocol = match.Groups[3].Value + match.Groups[11].Value;
-                    string server = match.Groups[4].Value + match.Groups[12].Value;
-                    string orgName = match.Groups[5].Value + match.Groups[15].Value;
-                    string port = match.Groups[8].Value + match.Groups[14].Value;
-
-                    atoms["Server"] = server;
-                    atoms["Port"] = port;
-                    atoms["UseSSL"] = protocol.Equals("https").ToString();
-                    atoms["OrganizationName"] = orgName;
-                }
-            }
-
-            return new ConnectionProfile
-            {
-                Tag = !string.IsNullOrEmpty(element.GetAttribute("tag")) ? element.GetAttribute("tag") : "(unnamed)",
-                IsDefault = element.GetAttribute("default").Equals(true.ToString()),
-                ServerUrl = atoms["Server"],
-                Port = atoms["Port"],
-                UseSSL = atoms["UseSSL"].Equals(true.ToString()),
-                Domain = atoms["Domain"],
-                Username = atoms["Username"],
-                Password = atoms["Password"],
-                OrganizationName = atoms["OrganizationName"]
-            };
         }
 
         private void ToggleSelectionButton_Click(object sender, RoutedEventArgs e)

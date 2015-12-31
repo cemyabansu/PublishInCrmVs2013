@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using Task = System.Threading.Tasks.Task;
 using System.Text.RegularExpressions;
+using CemYabansu.PublishInCrm.Helpers;
 
 //For login, I used microsoft's code which is in CRM SDK.
 
@@ -23,6 +24,8 @@ namespace CemYabansu.PublishInCrm.Windows
 {
     public partial class ManageConnectionProfilesWindow
     {
+        private ProfileManager ProfileManager { get; set; }
+        private ConnectionProfile SelectedProfile { get; set; }
         private Dictionary<string, string> _organizationsDictionary;
         public string ConnectionString { get; set; }
 
@@ -34,7 +37,6 @@ namespace CemYabansu.PublishInCrm.Windows
         private string _serverUrl;
         private string _portNumber;
         private bool _isSsl;
-        private List<ConnectionProfile> _profiles;
 
         public ManageConnectionProfilesWindow(string solutionPath)
         {
@@ -43,7 +45,8 @@ namespace CemYabansu.PublishInCrm.Windows
             _projectPath = solutionPath;
             _savePath = (_projectPath.EndsWith(".sln")) ? Path.GetDirectoryName(solutionPath) : solutionPath;
 
-            RetrieveProfiles(_savePath);
+            ProfileManager = new ProfileManager(_savePath);
+
             InitializeProfileList();
         }
 
@@ -51,17 +54,15 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             // Refill the combobox
             ConnectionStringCombobox.Items.Clear();
-            foreach (var profile in _profiles)
+            foreach (var profile in ProfileManager.Profiles)
             {
                 ConnectionStringCombobox.Items.Add(profile.Tag);
             }
 
-            var defaultProfile = _profiles.Find(p => p.IsDefault);
-
-            if (defaultProfile != null)
+            if (ProfileManager.DefaultProfile != null)
             {
-                ConnectionStringCombobox.SelectedItem = defaultProfile.Tag;
-                InitializeInputs(defaultProfile);
+                ConnectionStringCombobox.SelectedItem = ProfileManager.DefaultProfile.Tag;
+                InitializeInputs(ProfileManager.DefaultProfile);
             }
         }
 
@@ -71,90 +72,11 @@ namespace CemYabansu.PublishInCrm.Windows
             ServerTextBox.Text = profile.ServerUrl;
             PortTextBox.Text = profile.Port;
             SslCheckBox.IsChecked = profile.UseSSL;
+            IfdCheckBox.IsChecked = profile.UseIFD;
             DomainTextBox.Text = profile.Domain;
             UsernameTextBox.Text = profile.Username;
             PasswordTextBox.Password = profile.Password;
-        }
-
-        private void RetrieveProfiles(string path)
-        {
-            _profiles = new List<ConnectionProfile>();
-            string filePath = path + "\\credential.xml";
-            if (File.Exists(filePath))
-            {
-                var document = new XmlDocument();
-                document.LoadXml(File.ReadAllText(filePath));
-                foreach (XmlNode node in document.GetElementsByTagName("string"))
-                {
-                    var profile = ParseElement(node as XmlElement);
-                    _profiles.Add(profile);
-                }
-            }
-        }
-
-        private ConnectionProfile ParseElement(XmlElement element)
-        {
-            string connectionString = element.InnerText;
-            Dictionary<string, string> atoms = new Dictionary<string, string>();
-            
-            foreach (string molecule in connectionString.Split(';'))
-            {
-                string [] atom = molecule.Split('=');
-                atoms.Add(atom[0].Trim(), atom[1].Trim());
-            }
-
-            atoms.Add("Port", "");
-            atoms.Add("UseSSL", "");
-            atoms.Add("OrganizationName", "");
-
-            if(atoms.ContainsKey("Server")) 
-            {
-                var serverUrl = atoms["Server"];
-                
-                // Parse the server url with a regular expression.
-                // Accepts IFD and non-IFD URLs, e.g. :
-                // http(s)://myorg.contoso.com
-                // http(s)://www.contoso.com/myorg
-                // http(s)://myorg.contoso.com:9999
-                // http(s)://www.contoso.com:9999/myorg
-                // The groupings for this regular expression is below.
-                // +--------------+---------------+
-                // |    Data      |    Groups     |
-                // |    Type      | (IFD/Non-IFD) |
-                // | -------------|---------------|
-                // | Protocol     |     3 / 11    |                
-                // | ServerUrl    |     4 / 12    |
-                // | OrgName      |     5 / 15    |
-                // | Port Number  |     8 / 14    |
-                // +--------------+---------------+
-                string urlExpression = @"^(((http|https):\/\/)(([a-zA-Z0-9]+)\.([a-zA-Z0-9\.]+))(:(\d+))?)\/?$|^(((http|https):\/\/)([a-zA-Z0-9\.]+)(:(\d+))?\/([a-zA-Z0-9]+))$";
-                var match = Regex.Match(serverUrl, urlExpression);
-                
-                if(match.Success) {
-                    string protocol = match.Groups[3].Value + match.Groups[11].Value;
-                    string server = match.Groups[4].Value + match.Groups[12].Value;
-                    string orgName = match.Groups[5].Value + match.Groups[15].Value;
-                    string port = match.Groups[8].Value + match.Groups[14].Value;
-
-                    atoms["Server"] = server;
-                    atoms["Port"] = port;
-                    atoms["UseSSL"] = protocol.Equals("https").ToString();
-                    atoms["OrganizationName"] = orgName;
-                }
-            }
-
-            return new ConnectionProfile
-            {
-                Tag = !string.IsNullOrEmpty(element.GetAttribute("tag")) ? element.GetAttribute("tag") : "(unnamed)",
-                IsDefault = element.GetAttribute("default").Equals(true.ToString()),
-                ServerUrl = atoms["Server"],
-                Port = atoms["Port"],
-                UseSSL = atoms["UseSSL"].Equals(true.ToString()),
-                Domain = atoms["Domain"],
-                Username = atoms["Username"],
-                Password = atoms["Password"],
-                OrganizationName = atoms["OrganizationName"]
-            };
+            SelectedProfile = profile;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -164,12 +86,41 @@ namespace CemYabansu.PublishInCrm.Windows
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedConnectionStringTag = ConnectionStringCombobox.Text;
-            var selectedOrganizationUrl = _organizationsDictionary[(string)OrganizationsComboBox.SelectedValue];
+            //System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionStringTag, isDefault));
+            Update(SelectedProfile);
+            System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString());
+        }
 
-            bool isDefault = DefaultProfileCheckBox.IsChecked ?? false;
+        private void Update(ConnectionProfile profile)
+        {
+            profile.IsDefault = DefaultProfileCheckBox.IsChecked ?? false;
+            profile.ServerUrl = ServerTextBox.Text;
+            profile.Port = PortTextBox.Text;
+            profile.UseSSL = SslCheckBox.IsChecked ?? false;
+            profile.UseIFD = IfdCheckBox.IsChecked ?? false;
+            profile.Domain = DomainTextBox.Text;
+            profile.Username = UsernameTextBox.Text;
+            profile.Password = PasswordTextBox.Password;
+        }
 
-            System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionStringTag, isDefault));
+        private async void SaveConnectionString()
+        {
+            SetEnableToUIElement(SaveButton, false);
+            SetActivateToConnectionProgressRing(true);
+            SetConnectionStatus("Testing connection..");
+
+            var result = await System.Threading.Tasks.Task.FromResult(TestConnection(SelectedProfile.ConnectionString));
+
+            SetActivateToConnectionProgressRing(false);
+            if (!result)
+            {
+                SetConnectionStatus("Connection failed.");
+                return;
+            }
+
+            ProfileManager.SaveChanges();
+
+            Dispatcher.Invoke(Close);
         }
 
         private async void SaveConnectionString(string selectedOrganizationUrl, string connectionStringTag, bool isDefault)
@@ -355,7 +306,7 @@ namespace CemYabansu.PublishInCrm.Windows
         private void CheckDefaultOrganization()
         {
             var selectedProfileName = ConnectionStringCombobox.Text;
-            var selectedProfile = _profiles.Find(p => p.Tag.Equals(selectedProfileName));
+            var selectedProfile = ProfileManager.Profiles.Find(p => p.Tag.Equals(selectedProfileName));
 
             if (selectedProfile != null)
             {
@@ -522,7 +473,7 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             string tag = (ConnectionStringCombobox.SelectedItem ?? string.Empty).ToString();
 
-            var profile = _profiles.Find(p => p.Tag.Equals(tag));
+            var profile = ProfileManager.Get(tag);
 
             if (profile != null)
             {

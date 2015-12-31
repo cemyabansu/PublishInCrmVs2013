@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls\CheckedListItem.cs" />
+    <Compile Include="Helpers\ProfileManager.cs" />
     <Compile Include="Models\ConnectionProfile.cs" />
     <Compile Include="CrmSdkTypes.cs" />
     <Compile Include="DeviceIdManager.cs" />
