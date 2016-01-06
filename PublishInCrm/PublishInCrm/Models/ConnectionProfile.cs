@@ -26,8 +26,10 @@ namespace CemYabansu.PublishInCrm
             get
             {
                 return string.Format(
-                        "Server={0}; Domain={1}; Username={2}; Password={3}",
+                        "Server={0}://{1}{2}; Domain={3}; Username={4}; Password={5}",
+                        UseSSL ? "https" : "http",
                         ServerUrl,
+                        string.IsNullOrEmpty(Port) ? "" : ":" + Port,
                         Domain,
                         Username,
                         Password

@@ -38,6 +38,7 @@ namespace CemYabansu.PublishInCrm.Windows
                 path = System.IO.Path.GetDirectoryName(path);
 
             ProfileManager = new ProfileManager(path);
+            ProfileItems = new ObservableCollection<CheckedListItem<ConnectionProfile>>();
 
             foreach (var profile in ProfileManager.Profiles)
             {

@@ -76,7 +76,7 @@ namespace CemYabansu.PublishInCrm
                 mcs.AddCommand(publishTo);
 
                 CommandID publishToMultipleCmd = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidPublishInMultiple);
-                MenuCommand publishToMultiple = new MenuCommand(PublishToCallback, publishToMultipleCmd);
+                MenuCommand publishToMultiple = new MenuCommand(PublishToMultipleCallback, publishToMultipleCmd);
                 mcs.AddCommand(publishToMultiple);
 
                 CommandID manageConProfilesCmd = new CommandID(GuidList.guidPublishInCrmCmdSet, (int)PkgCmdIDList.cmdidManageConnectionProfiles);
@@ -91,12 +91,30 @@ namespace CemYabansu.PublishInCrm
 
         private void PublishToCallback(object sender, EventArgs e)
         {
+            PublishTo(false);
+        }
+
+        private void PublishToMultipleCallback(object sender, EventArgs e)
+        {
+            PublishTo(true);
+        }
+
+        private void PublishTo(bool isFromSolutionExplorer)
+        {
             var window = new SelectOrganizationsWindow(GetSolutionPath());
             bool? publish = window.ShowDialog();
             if (publish.HasValue && publish.Value)
             {
-                
+                foreach (var profileItem in window.ProfileItems.Where(p => p.IsChecked))
+                {
+                    var profile = profileItem.Item;
+
+                    // Publish using this connection profile.
+                    PublishInCrm(isFromSolutionExplorer, profile.ConnectionString);
+                }
+
             }
+
         }
 
         private void ManageConnectionProfilesCallback(object sender, EventArgs e)
