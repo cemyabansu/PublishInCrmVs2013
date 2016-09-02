@@ -44,8 +44,8 @@ namespace CemYabansu.PublishInCrm.Windows
 
         public void SetConnectionLabelText(string text, bool isSucceed)
         {
-            SetEnabledToUiElemet(ConnectionLabel, true);
-            SetTextToLabel(ConnectionLabel, text);
+            SetUiElementEnabled(ConnectionLabel, true);
+            SetLabelText(ConnectionLabel, text);
             var uri = new Uri(isSucceed ? _doneImagePath : _errorImagePath, UriKind.RelativeOrAbsolute);
             SetImageSourceToImage(ConnectionImage, uri);
         }
@@ -59,13 +59,13 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             _currentStatus = CurrentStatus.UpdatingWebresources;
             SetActivityToProgressRing(UpdateProgressRing, true);
-            SetEnabledToUiElemet(UpdateLabel, true);
+            SetUiElementEnabled(UpdateLabel, true);
         }
 
         public void FinishUpdating(bool isSucceed)
         {
-            SetVisiblityToUiElemet(UpdateProgressRing, Visibility.Collapsed);
-            SetVisiblityToUiElemet(UpdateImage, Visibility.Visible);
+            SetUiElementVisibility(UpdateProgressRing, Visibility.Collapsed);
+            SetUiElementVisibility(UpdateImage, Visibility.Visible);
             var uri = new Uri(isSucceed ? _doneImagePath : _errorImagePath, UriKind.RelativeOrAbsolute);
             SetImageSourceToImage(UpdateImage, uri);
         }
@@ -74,13 +74,13 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             _currentStatus = CurrentStatus.GettingWebresources;
             SetActivityToProgressRing(GettingWebresourcesProgressRing, true);
-            SetEnabledToUiElemet(GettingWebresourcesLabel, true);
+            SetUiElementEnabled(GettingWebresourcesLabel, true);
         }
 
         public void FinishGettingWebresources(bool isSucceed)
         {
-            SetVisiblityToUiElemet(GettingWebresourcesProgressRing, Visibility.Collapsed);
-            SetVisiblityToUiElemet(GettingWebresourcesImage, Visibility.Visible);
+            SetUiElementVisibility(GettingWebresourcesProgressRing, Visibility.Collapsed);
+            SetUiElementVisibility(GettingWebresourcesImage, Visibility.Visible);
             var uri = new Uri(isSucceed ? _doneImagePath : _errorImagePath, UriKind.RelativeOrAbsolute);
             SetImageSourceToImage(GettingWebresourcesImage, uri);
         }
@@ -89,13 +89,13 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             _currentStatus = CurrentStatus.CreatingWebresources;
             SetActivityToProgressRing(CreateProgressRing, true);
-            SetEnabledToUiElemet(CreateLabel, true);
+            SetUiElementEnabled(CreateLabel, true);
         }
 
         public void FinishCreating(bool isSucceed)
         {
-            SetVisiblityToUiElemet(CreateProgressRing, Visibility.Collapsed);
-            SetVisiblityToUiElemet(CreateImage, Visibility.Visible);
+            SetUiElementVisibility(CreateProgressRing, Visibility.Collapsed);
+            SetUiElementVisibility(CreateImage, Visibility.Visible);
             var uri = new Uri(isSucceed ? _doneImagePath : _errorImagePath, UriKind.RelativeOrAbsolute);
             SetImageSourceToImage(CreateImage, uri);
         }
@@ -104,23 +104,23 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             _currentStatus = CurrentStatus.Publishing;
             SetActivityToProgressRing(PublishProgressRing, true);
-            SetEnabledToUiElemet(PublishLabel, true);
+            SetUiElementEnabled(PublishLabel, true);
         }
 
         public void FinishPublishing(bool isSucceed, string text)
         {
-            if (!string.IsNullOrEmpty(text)) SetTextToLabel(PublishLabel, text);
-            SetVisiblityToUiElemet(PublishProgressRing, Visibility.Collapsed);
-            SetVisiblityToUiElemet(PublishImage, Visibility.Visible);
+            if (!string.IsNullOrEmpty(text)) SetLabelText(PublishLabel, text);
+            SetUiElementVisibility(PublishProgressRing, Visibility.Collapsed);
+            SetUiElementVisibility(PublishImage, Visibility.Visible);
             var uri = new Uri(isSucceed ? _doneImagePath : _errorImagePath, UriKind.RelativeOrAbsolute);
             SetImageSourceToImage(PublishImage, uri);
         }
 
         public void AddErrorText(string message)
         {
-            SetVisiblityToUiElemet(ErrorImage, Visibility.Visible);
-            SetVisiblityToUiElemet(ErrorLabel, Visibility.Visible);
-            SetTextToLabel(ErrorLabel, message);
+            SetUiElementVisibility(ErrorImage, Visibility.Visible);
+            SetUiElementVisibility(ErrorLabel, Visibility.Visible);
+            SetLabelText(ErrorLabel, message);
             SetErrorToCurrentProcess();
         }
 
@@ -131,42 +131,42 @@ namespace CemYabansu.PublishInCrm.Windows
             {
                 case CurrentStatus.Connection:
                     SetImageSourceToImage(ConnectionImage, uri);
-                    SetVisiblityToUiElemet(ConnectionImage, Visibility.Visible);
+                    SetUiElementVisibility(ConnectionImage, Visibility.Visible);
                     break;
                 case CurrentStatus.GettingWebresources:
                     SetImageSourceToImage(GettingWebresourcesImage, uri);
-                    SetVisiblityToUiElemet(GettingWebresourcesImage, Visibility.Visible);
-                    SetVisiblityToUiElemet(GettingWebresourcesProgressRing, Visibility.Collapsed);
+                    SetUiElementVisibility(GettingWebresourcesImage, Visibility.Visible);
+                    SetUiElementVisibility(GettingWebresourcesProgressRing, Visibility.Collapsed);
                     break;
                 case CurrentStatus.CreatingWebresources:
                     SetImageSourceToImage(CreateImage, uri);
-                    SetVisiblityToUiElemet(CreateImage, Visibility.Visible);
-                    SetVisiblityToUiElemet(CreateProgressRing, Visibility.Collapsed);
+                    SetUiElementVisibility(CreateImage, Visibility.Visible);
+                    SetUiElementVisibility(CreateProgressRing, Visibility.Collapsed);
                     break;
                 case CurrentStatus.UpdatingWebresources:
                     SetImageSourceToImage(UpdateImage, uri);
-                    SetVisiblityToUiElemet(UpdateImage, Visibility.Visible);
-                    SetVisiblityToUiElemet(UpdateProgressRing, Visibility.Collapsed);
+                    SetUiElementVisibility(UpdateImage, Visibility.Visible);
+                    SetUiElementVisibility(UpdateProgressRing, Visibility.Collapsed);
                     break;
                 case CurrentStatus.Publishing:
                     SetImageSourceToImage(PublishImage, uri);
-                    SetVisiblityToUiElemet(PublishImage, Visibility.Visible);
-                    SetVisiblityToUiElemet(PublishProgressRing, Visibility.Collapsed);
+                    SetUiElementVisibility(PublishImage, Visibility.Visible);
+                    SetUiElementVisibility(PublishProgressRing, Visibility.Collapsed);
                     break;
             }
         }
 
-        private void SetTextToLabel(ContentControl label, string text)
+        private void SetLabelText(ContentControl label, string text)
         {
             Dispatcher.Invoke(() => label.Content = text);
         }
 
-        private void SetVisiblityToUiElemet(UIElement uiElement, Visibility visibility)
+        private void SetUiElementVisibility(UIElement uiElement, Visibility visibility)
         {
             Dispatcher.Invoke(() => uiElement.Visibility = visibility);
         }
 
-        private void SetEnabledToUiElemet(UIElement uiElement, bool isEnabled)
+        private void SetUiElementEnabled(UIElement uiElement, bool isEnabled)
         {
             Dispatcher.Invoke(() => uiElement.IsEnabled = isEnabled);
         }
@@ -180,12 +180,12 @@ namespace CemYabansu.PublishInCrm.Windows
         {
             if (ShowDetailsButton.IsChecked == true)
             {
-                SetVisiblityToUiElemet(OutputTextBox, Visibility.Visible);
+                SetUiElementVisibility(OutputTextBox, Visibility.Visible);
                 Height += 180;
             }
             else
             {
-                SetVisiblityToUiElemet(OutputTextBox, Visibility.Hidden);
+                SetUiElementVisibility(OutputTextBox, Visibility.Hidden);
                 Height -= 180;
             }
         }

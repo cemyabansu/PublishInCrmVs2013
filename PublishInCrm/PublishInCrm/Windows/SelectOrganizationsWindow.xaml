@@ -1,0 +1,36 @@
+﻿<controls:MetroWindow x:Class="CemYabansu.PublishInCrm.Windows.SelectOrganizationsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        BorderBrush="{DynamicResource AccentColorBrush}"
+        BorderThickness="1"
+        Title="Publish to ..." Height="280" Width="250" ResizeMode="CanMinimize" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/PublishInCrm;component/Resources/Icons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Label Content="Select profiles to publish in ..." HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top"/>
+        <ListBox Name="ProfilesListBox" Margin="10,36,20,60"
+         ItemsSource="{Binding ProfileItems}">
+            <!-- Because CheckBox indicates selection, hide standard ListBox -->
+            <!-- selection behavior -->
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="Focusable" Value="False"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <!-- Each item in list is a CheckBox -->
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox Content="{Binding Path=Item.Tag}" IsChecked="{Binding IsChecked}"  Checked="CheckBox_Checked" Unchecked="CheckBox_Checked" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Button x:Name="PublishButton" Content="Publish" HorizontalAlignment="Left" Margin="158,213,0,0" VerticalAlignment="Top" Width="75" Click="PublishButton_Click"/>
+        <Button x:Name="ToggleSelectionButton" Content="Select All" HorizontalAlignment="Left" Margin="78,213,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.72,-0.04" Click="ToggleSelectionButton_Click"/>
+    </Grid>
+</controls:MetroWindow>

@@ -145,6 +145,10 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\CheckedListItem.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Helpers\ProfileManager.cs" />
+    <Compile Include="Models\ConnectionProfile.cs" />
     <Compile Include="CrmSdkTypes.cs" />
     <Compile Include="DeviceIdManager.cs" />
     <Compile Include="Guids.cs" />
@@ -163,8 +167,11 @@
     <Compile Include="Windows\OutputWindow.xaml.cs">
       <DependentUpon>OutputWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\UserCredential.xaml.cs">
-      <DependentUpon>UserCredential.xaml</DependentUpon>
+    <Compile Include="Windows\SelectOrganizationsWindow.xaml.cs">
+      <DependentUpon>SelectOrganizationsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ManageConnectionProfilesWindow.xaml.cs">
+      <DependentUpon>ManageConnectionProfilesWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +198,7 @@
   <ItemGroup>
     <VSCTCompile Include="PublishInCrm.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
@@ -198,6 +206,10 @@
     <Resource Include="Resources\done.png" />
     <Resource Include="Resources\error.png" />
     <Resource Include="Resources\Entypo-license.txt" />
+    <Content Include="Resources\preview.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Publish_32.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -217,7 +229,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\UserCredential.xaml">
+    <Page Include="Windows\SelectOrganizationsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ManageConnectionProfilesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
