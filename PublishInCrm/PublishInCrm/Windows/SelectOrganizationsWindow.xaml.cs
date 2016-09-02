@@ -69,7 +69,7 @@ namespace CemYabansu.PublishInCrm.Windows
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             // Check all profile items, if every profile item is checked, rename the toggle button to "Clear All". Otherwise, "Select All".
-            ToggleSelectionButton.Content = (ProfileItems.Count(p => !p.IsChecked) > 0) ? "Select All" : "Clear All";
+            ToggleSelectionButton.Content = (ProfileItems.Count(p => p.IsChecked) > 0) ? "Clear All" : "Select All";
             PublishButton.IsEnabled = ProfileItems.Count(p => p.IsChecked) > 0;
         }
 

@@ -76,6 +76,14 @@ namespace CemYabansu.PublishInCrm.Windows
             DomainTextBox.Text = profile.Domain;
             UsernameTextBox.Text = profile.Username;
             PasswordTextBox.Password = profile.Password;
+
+            OrganizationsComboBox.Items.Clear();
+            OrganizationsComboBox.Items.Add(profile.OrganizationName);
+            OrganizationsComboBox.SelectedItem = profile.OrganizationName;
+
+            // Editing an existing profile, we should be able to save.
+            SaveButton.IsEnabled = true;
+
             SelectedProfile = profile;
         }
 

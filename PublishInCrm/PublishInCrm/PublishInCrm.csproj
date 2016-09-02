@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls\CheckedListItem.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Helpers\ProfileManager.cs" />
     <Compile Include="Models\ConnectionProfile.cs" />
     <Compile Include="CrmSdkTypes.cs" />
@@ -205,6 +206,10 @@
     <Resource Include="Resources\done.png" />
     <Resource Include="Resources\error.png" />
     <Resource Include="Resources\Entypo-license.txt" />
+    <Content Include="Resources\preview.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Publish_32.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

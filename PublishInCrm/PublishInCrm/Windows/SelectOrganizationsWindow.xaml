@@ -14,7 +14,7 @@
     </Window.Resources>
     <Grid>
         <Label Content="Select profiles to publish in ..." HorizontalAlignment="Left" Margin="15,10,0,0" VerticalAlignment="Top"/>
-        <ListBox Name="ProfilesListBox" Margin="15,36,15,60"
+        <ListBox Name="ProfilesListBox" Margin="10,36,20,60"
          ItemsSource="{Binding ProfileItems}">
             <!-- Because CheckBox indicates selection, hide standard ListBox -->
             <!-- selection behavior -->
@@ -26,7 +26,7 @@
             <!-- Each item in list is a CheckBox -->
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox Content="{Binding Path=Item.Tag}" IsChecked="{Binding IsChecked}" Checked="CheckBox_Checked"/>
+                    <CheckBox Content="{Binding Path=Item.Tag}" IsChecked="{Binding IsChecked}"  Checked="CheckBox_Checked" Unchecked="CheckBox_Checked" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

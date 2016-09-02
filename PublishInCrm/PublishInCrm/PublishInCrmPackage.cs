@@ -34,7 +34,6 @@ namespace CemYabansu.PublishInCrm
     {
         private readonly string[] _expectedExtensions = { ".js", ".htm", ".html", ".css", ".png", ".jpg", ".jpeg", ".gif", ".xml" };
 
-        private OutputWindow _outputWindow;
         private bool _error = false, _success = true;
 
         public PublishInCrmPackage()
@@ -105,11 +104,13 @@ namespace CemYabansu.PublishInCrm
             bool? publish = window.ShowDialog();
             if (publish.HasValue && publish.Value)
             {
+                // Publish using each selected connection profile
                 foreach (var profileItem in window.ProfileItems.Where(p => p.IsChecked))
                 {
                     var profile = profileItem.Item;
 
-                    // Publish using this connection profile.
+                    // Publishing synchronously because the output window 
+                    // is commonly used amongst the publish calls.
                     PublishInCrm(isFromSolutionExplorer, profile.ConnectionString);
                 }
 
@@ -134,8 +135,8 @@ namespace CemYabansu.PublishInCrm
 
         private void PublishInCrm(bool isFromSolutionExplorer)
         {
-            _outputWindow = new OutputWindow();
-            _outputWindow.Show();
+            var outputWindow = new OutputWindow();
+            outputWindow.Show();
 
             //getting selected files
             List<string> selectedFiles = GetSelectedFilesPath(isFromSolutionExplorer);
@@ -144,8 +145,8 @@ namespace CemYabansu.PublishInCrm
             var inValidFiles = CheckFilesExtension(selectedFiles);
             if (inValidFiles.Count > 0)
             {
-                AddErrorToOutputWindow(string.Format("Invalid file extensions : {0}", string.Join(", ", inValidFiles)));
-                AddErrorLineToOutputWindow(string.Format("Error : Invalid file extensions : \n\t- {0}", string.Join("\n\t- ", inValidFiles)));
+                outputWindow.AddErrorText(string.Format("Invalid file extensions : {0}", string.Join(", ", inValidFiles)));
+                outputWindow.AddErrorLineToTextBox(string.Format("Error : Invalid file extensions : \n\t- {0}", string.Join("\n\t- ", inValidFiles)));
                 return;
             }
 
@@ -155,31 +156,31 @@ namespace CemYabansu.PublishInCrm
             var connectionString = GetConnectionString(solutionPath);
             if (connectionString == string.Empty)
             {
-                SetConnectionLabelText("Connection string was not provided.", _error);
-                AddErrorLineToOutputWindow("Error : Connection string was not provided.");
+                outputWindow.SetConnectionLabelText("Connection string was not provided.", _error);
+                outputWindow.AddErrorLineToTextBox("Error : Connection string was not provided.");
 
                 var userCredential = new ManageConnectionProfilesWindow(solutionPath);
                 userCredential.ShowDialog();
 
                 if (string.IsNullOrEmpty(userCredential.ConnectionString))
                 {
-                    SetConnectionLabelText("Connection failed.", _error);
-                    AddErrorLineToOutputWindow("Error : Connection failed.");
+                    outputWindow.SetConnectionLabelText("Connection failed.", _error);
+                    outputWindow.AddErrorLineToTextBox("Error : Connection failed.");
                     return;
                 }
                 connectionString = userCredential.ConnectionString;
             }
 
             //updating/creating files one by one
-            var thread = new Thread(o => UpdateWebResources(connectionString, selectedFiles));
+            var thread = new Thread(o => UpdateWebResources(connectionString, selectedFiles, outputWindow));
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
         }
 
-        private void PublishInCrm(bool isFromSolutionExplorer, string connectionString)
+        private Thread PublishInCrm(bool isFromSolutionExplorer, string connectionString)
         {
-            _outputWindow = new OutputWindow();
-            _outputWindow.Show();
+            var outputWindow = new OutputWindow();
+            outputWindow.Show();
 
             //getting selected files
             List<string> selectedFiles = GetSelectedFilesPath(isFromSolutionExplorer);
@@ -188,33 +189,36 @@ namespace CemYabansu.PublishInCrm
             var inValidFiles = CheckFilesExtension(selectedFiles);
             if (inValidFiles.Count > 0)
             {
-                AddErrorToOutputWindow(string.Format("Invalid file extensions : {0}", string.Join(", ", inValidFiles)));
-                AddErrorLineToOutputWindow(string.Format("Error : Invalid file extensions : \n\t- {0}", string.Join("\n\t- ", inValidFiles)));
-                return;
+                
+                outputWindow.AddErrorText(string.Format("Invalid file extensions : {0}", string.Join(", ", inValidFiles)));
+                outputWindow.AddErrorLineToTextBox(string.Format("Error : Invalid file extensions : \n\t- {0}", string.Join("\n\t- ", inValidFiles)));
+                return null;
             }
 
             // Check connection string
             if (connectionString == string.Empty)
             {
-                SetConnectionLabelText("Connection string was not provided.", _error);
-                AddErrorLineToOutputWindow("Error : Connection string was not provided.");
+                outputWindow.SetConnectionLabelText("Connection string was not provided.", _error);
+                outputWindow.AddErrorLineToTextBox("Error : Connection string was not provided.");
 
                 var userCredential = new ManageConnectionProfilesWindow(GetSolutionPath());
                 userCredential.ShowDialog();
 
                 if (string.IsNullOrEmpty(userCredential.ConnectionString))
                 {
-                    SetConnectionLabelText("Connection failed.", _error);
-                    AddErrorLineToOutputWindow("Error : Connection failed.");
-                    return;
+                    outputWindow.SetConnectionLabelText("Connection failed.", _error);
+                    outputWindow.AddErrorLineToTextBox("Error : Connection failed.");
+                    return null;
                 }
                 connectionString = userCredential.ConnectionString;
             }
 
             //updating/creating files one by one
-            var thread = new Thread(o => UpdateWebResources(connectionString, selectedFiles));
+            var thread = new Thread(o => UpdateWebResources(connectionString, selectedFiles, outputWindow));
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
+
+            return thread;
         }
         
         /// <returns>List of selected file or active file</returns>
@@ -368,104 +372,104 @@ namespace CemYabansu.PublishInCrm
             return connectionStrings;
         }
 
-        private void UpdateWebResources(string connectionString, List<string> selectedFiles)
+        private void UpdateWebResources(string connectionString, List<string> selectedFiles, OutputWindow outputWindow)
         {
             try
             {
                 var toBePublishedWebResources = new List<WebResource>();
                 OrganizationService orgService;
                 var crmConnection = CrmConnection.Parse(connectionString);
-                //to escape "another assembly" exception
+                // To escape "another assembly" exception
                 crmConnection.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 using (orgService = new OrganizationService(crmConnection))
                 {
 
-                    SetConnectionLabelText(string.Format("Connected to : {0}", crmConnection.ServiceUri), _success);
-                    AddLineToOutputWindow(string.Format("Connected to : {0}", crmConnection.ServiceUri));
+                    outputWindow.SetConnectionLabelText(string.Format("Connected to : {0}", crmConnection.ServiceUri), _success);
+                    outputWindow.AddLineToTextBox(string.Format("Connected to : {0}", crmConnection.ServiceUri));
 
                     Dictionary<string, WebResource> toBeCreatedList;
                     Dictionary<string, WebResource> toBeUpdatedList;
 
-                    GetWebresources(orgService, selectedFiles, out toBeCreatedList, out toBeUpdatedList);
+                    GetWebresources(orgService, selectedFiles, out toBeCreatedList, out toBeUpdatedList, outputWindow);
 
-                    CreateWebresources(toBeCreatedList, orgService, toBePublishedWebResources);
+                    CreateWebresources(toBeCreatedList, orgService, toBePublishedWebResources, outputWindow);
 
-                    UpdateWebresources(toBeUpdatedList, orgService, toBePublishedWebResources);
+                    UpdateWebresources(toBeUpdatedList, orgService, toBePublishedWebResources, outputWindow);
 
-                    PublishWebResources(orgService, toBePublishedWebResources);
+                    PublishWebResources(orgService, toBePublishedWebResources, outputWindow);
                 }
                 stopwatch.Stop();
-                AddLineToOutputWindow(string.Format("Time : {0}", stopwatch.Elapsed));
+                outputWindow.AddLineToTextBox(string.Format("Time : {0}", stopwatch.Elapsed));
             }
             catch (Exception ex)
             {
-                AddErrorToOutputWindow(ex.Message);
-                AddErrorLineToOutputWindow("Error : " + ex.Message);
+                outputWindow.AddErrorText(ex.Message);
+                outputWindow.AddErrorLineToTextBox("Error : " + ex.Message);
             }
         }
 
         private void UpdateWebresources(Dictionary<string, WebResource> toBeUpdatedList, OrganizationService orgService,
-            List<WebResource> toBePublishedWebResources)
+            List<WebResource> toBePublishedWebResources, OutputWindow outputWindow)
         {
             if (toBeUpdatedList.Count > 0)
             {
-                StartUpdatingWebresources();
+                outputWindow.StartUpdating();
                 foreach (var toBeUpdated in toBeUpdatedList)
                 {
-                    AddLineToOutputWindow(string.Format("Updating to webresource({0}) ..", Path.GetFileName(toBeUpdated.Key)));
+                    outputWindow.AddLineToTextBox(string.Format("Updating to webresource({0}) ..", Path.GetFileName(toBeUpdated.Key)));
                     UpdateWebResource(orgService, toBeUpdated.Value, toBeUpdated.Key);
-                    AddLineToOutputWindow(string.Format("{0} is updated.", toBeUpdated.Value.Name));
+                    outputWindow.AddLineToTextBox(string.Format("{0} is updated.", toBeUpdated.Value.Name));
                     toBePublishedWebResources.Add(toBeUpdatedList[toBeUpdated.Key]);
                 }
-                FinishUpdatingWebresources(_success);
+                outputWindow.FinishUpdating(_success);
             }
         }
 
         private void CreateWebresources(Dictionary<string, WebResource> toBeCreatedList, OrganizationService orgService,
-            List<WebResource> toBePublishedWebResources)
+            List<WebResource> toBePublishedWebResources, OutputWindow outputWindow)
         {
             if (toBeCreatedList.Count > 0)
             {
-                StartCreatingWebresources();
+                outputWindow.StartCreating();
                 List<string> keys = new List<string>(toBeCreatedList.Keys);
                 foreach (var key in keys)
                 {
-                    AddLineToOutputWindow(string.Format("Creating new webresource({0})..", Path.GetFileName(key)));
+                    outputWindow.AddLineToTextBox(string.Format("Creating new webresource({0})..", Path.GetFileName(key)));
                     toBeCreatedList[key] = CreateWebResource(Path.GetFileName(key), orgService, key);
                     if (toBeCreatedList[key] == null)
                     {
-                        AddLineToOutputWindow(string.Format("Creating new webresource({0}) is cancelled.", Path.GetFileName(key)));
+                        outputWindow.AddLineToTextBox(string.Format("Creating new webresource({0}) is cancelled.", Path.GetFileName(key)));
                         continue;
                     }
-                    AddLineToOutputWindow(string.Format("{0} is created.", Path.GetFileName(key)));
+                    outputWindow.AddLineToTextBox(string.Format("{0} is created.", Path.GetFileName(key)));
                     toBePublishedWebResources.Add(toBeCreatedList[key]);
                 }
-                FinishCreatingWebresources(_success);
+                outputWindow.FinishCreating(_success);
             }
         }
 
-        private void GetWebresources(OrganizationService orgService, List<string> selectedFiles, out Dictionary<string, WebResource> toBeCreatedList, out Dictionary<string, WebResource> toBeUpdatedList)
+        private void GetWebresources(OrganizationService orgService, List<string> selectedFiles, out Dictionary<string, WebResource> toBeCreatedList, out Dictionary<string, WebResource> toBeUpdatedList, OutputWindow outputWindow)
         {
-            StartGettingWebresources();
+            outputWindow.StartGettingWebresources();
             toBeCreatedList = new Dictionary<string, WebResource>();
             toBeUpdatedList = new Dictionary<string, WebResource>();
             for (int i = 0; i < selectedFiles.Count; i++)
             {
                 var fileName = Path.GetFileName(selectedFiles[i]);
-                var choosenWebresource = GetWebresource(orgService, fileName);
-                if (choosenWebresource == null)
+                var chosenWebResource = GetWebresource(orgService, fileName);
+                if (chosenWebResource == null)
                 {
-                    AddErrorLineToOutputWindow(string.Format("Error : {0} is not exist in CRM.", fileName));
+                    outputWindow.AddErrorLineToTextBox(string.Format("Error : {0} is not exist in CRM.", fileName));
                     toBeCreatedList.Add(selectedFiles[i], null);
                 }
                 else
                 {
-                    toBeUpdatedList.Add(selectedFiles[i], choosenWebresource);
+                    toBeUpdatedList.Add(selectedFiles[i], chosenWebResource);
                 }
             }
-            FinishGettingWebresources(_success);
+            outputWindow.FinishGettingWebresources(_success);
         }
 
         /// <returns>Webresource which has equal name with "filename" which with or without extension</returns>
@@ -512,16 +516,16 @@ namespace CemYabansu.PublishInCrm
             orgService.Execute(updateRequest);
         }
 
-        private void PublishWebResources(OrganizationService orgService, List<WebResource> toBePublishedWebResources)
+        private void PublishWebResources(OrganizationService orgService, List<WebResource> toBePublishedWebResources, OutputWindow outputWindow)
         {
             if (toBePublishedWebResources.Count < 1)
             {
-                FinishingPublishing(_error, "There is no webresource to publish.");
-                AddLineToOutputWindow("There is no webresource to publish.");
+                outputWindow.FinishPublishing(_error, "There is no webresource to publish.");
+                outputWindow.AddLineToTextBox("There is no webresource to publish.");
                 return;
             }
 
-            StartToPublish();
+            outputWindow.StartPublishing();
             var webResourcesString = "";
             foreach (var webResource in toBePublishedWebResources)
                 webResourcesString = webResourcesString + string.Format("<webresource>{0}</webresource>", webResource.Id);
@@ -531,14 +535,14 @@ namespace CemYabansu.PublishInCrm
                 ParameterXml = string.Format("<importexportxml><webresources>{0}</webresources></importexportxml>", webResourcesString)
             };
             orgService.Execute(prequest);
-            FinishingPublishing(_success, null);
+            outputWindow.FinishPublishing(_success, null);
 
             var webResourcesNames = new string[toBePublishedWebResources.Count];
             for (var i = 0; i < toBePublishedWebResources.Count; i++)
             {
                 webResourcesNames[i] = toBePublishedWebResources[i].Name;
             }
-            AddLineToOutputWindow(string.Format("Published webresources : \n\t- {0}", string.Join("\n\t- ", webResourcesNames)));
+            outputWindow.AddLineToTextBox(string.Format("Published webresources : \n\t- {0}", string.Join("\n\t- ", webResourcesNames)));
         }
 
         private static EntityCollection WebresourceResult(OrganizationService orgService, string filename)
@@ -567,76 +571,6 @@ namespace CemYabansu.PublishInCrm
             fs.Read(binaryData, 0, (int)fs.Length);
             fs.Close();
             return Convert.ToBase64String(binaryData, 0, binaryData.Length);
-        }
-
-        private void AddLineToOutputWindow(string text)
-        {
-            _outputWindow.AddLineToTextBox(text);
-        }
-
-        private void AddErrorLineToOutputWindow(string errorMessage)
-        {
-            _outputWindow.AddErrorLineToTextBox(errorMessage);
-        }
-
-        private void AddErrorToOutputWindow(string errorMessage)
-        {
-            _outputWindow.AddErrorText(errorMessage);
-        }
-
-        private void SetConnectionLabelText(string message, bool isSuccess)
-        {
-            _outputWindow.SetConnectionLabelText(message, isSuccess);
-        }
-
-        public void StartToCreateAndUpdate()
-        {
-            _outputWindow.StartUpdating();
-        }
-
-        public void FinishingCreateAndUpdate(bool isSuccess)
-        {
-            _outputWindow.FinishUpdating(isSuccess);
-        }
-
-        public void StartToPublish()
-        {
-            _outputWindow.StartPublishing();
-        }
-
-        public void FinishingPublishing(bool isSuccess, string text)
-        {
-            _outputWindow.FinishPublishing(isSuccess, text);
-        }
-
-        public void StartGettingWebresources()
-        {
-            _outputWindow.StartGettingWebresources();
-        }
-
-        public void FinishGettingWebresources(bool isSuccess)
-        {
-            _outputWindow.FinishGettingWebresources(isSuccess);
-        }
-
-        public void StartCreatingWebresources()
-        {
-            _outputWindow.StartCreating();
-        }
-
-        public void FinishCreatingWebresources(bool isSuccess)
-        {
-            _outputWindow.FinishCreating(isSuccess);
-        }
-
-        public void StartUpdatingWebresources()
-        {
-            _outputWindow.StartUpdating();
-        }
-
-        public void FinishUpdatingWebresources(bool isSuccess)
-        {
-            _outputWindow.FinishUpdating(isSuccess);
         }
     }
 }

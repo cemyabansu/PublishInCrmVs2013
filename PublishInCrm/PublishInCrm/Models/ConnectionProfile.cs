@@ -53,14 +53,9 @@ namespace CemYabansu.PublishInCrm
                 atoms.Add(atom[0].Trim(), atom[1].Trim());
             }
 
-            atoms.Add("Port", "");
-            atoms.Add("UseSSL", "");
-            atoms.Add("UseIFD", "");
-            atoms.Add("OrganizationName", "");
-
             if (atoms.ContainsKey("Server"))
             {
-                var serverUrl = atoms["Server"];
+                var serverUrl = atoms.GetValue<string>("Server");;
 
                 // Parse the server url with a regular expression.
                 // Accepts IFD and non-IFD URLs, e.g. :
@@ -97,14 +92,19 @@ namespace CemYabansu.PublishInCrm
 
             Tag = !string.IsNullOrEmpty(element.GetAttribute("tag")) ? element.GetAttribute("tag") : "(unnamed)";
             IsDefault = element.GetAttribute("default").Equals(true.ToString());
-            ServerUrl = atoms["Server"];
-            Port = atoms["Port"];
-            UseSSL = atoms["UseSSL"].Equals(true.ToString());
-            UseIFD = element.GetAttribute("ifd").Equals(true.ToString());
-            Domain = atoms["Domain"];
-            Username = atoms["Username"];
-            Password = atoms["Password"];
-            OrganizationName = atoms["OrganizationName"];
+            ServerUrl = atoms.GetValue<string>("Server");
+            Port = atoms.GetValue<string>("Port");
+
+            string useSSL = atoms.GetValue<string>("UseSSL");
+            UseSSL = !string.IsNullOrEmpty(useSSL) && useSSL.Equals(true.ToString());
+            
+            string useIFD = element.GetAttribute("ifd");
+            UseIFD = !string.IsNullOrEmpty(useIFD) && useIFD.Equals(true.ToString());
+
+            Domain = atoms.GetValue<string>("Domain");
+            Username = atoms.GetValue<string>("Username");
+            Password = atoms.GetValue<string>("Password");
+            OrganizationName = atoms.GetValue<string>("OrganizationName");
         }
     }
 }

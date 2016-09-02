@@ -94,6 +94,7 @@ namespace CemYabansu.PublishInCrm.Helpers
                 connectionStringNode.InnerText = profile.ConnectionString;
                 connectionStringNode.SetAttribute("tag", profile.Tag);
                 connectionStringNode.SetAttribute("default", profile.IsDefault.ToString());
+                connectionStringNode.SetAttribute("ifd", profile.UseIFD.ToString());
                 rootNode.AppendChild(connectionStringNode);
             }
 
