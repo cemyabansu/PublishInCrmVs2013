@@ -11,14 +11,11 @@ Please go to [the original repository for the full readme](https://github.com/ce
 - Added multiple environment feature
 - Enhanced the connection settings screen to support multiple connection profiles
 - Separated the output window from the main class to allow multiple publish threads to be created.
+- Create/Delete publish profiles easily, no more XML involvement.
 
-This version can be merged into a **new branch** instead of the master branch, to keep the stable version in tact and experiment/test the multiple environment feature.
+### Install
 
-![Publishing Options](resources/ContextMenu.png)
-
-![Manage Connection Profiles ...](resources/ManageConnectionProfiles.png)
-
-![Publish to ...](resources/PublishTo.png)
+See [releases](https://github.com/seckin92/PublishInCrm/releases).
 
 ### To-do
 
@@ -29,3 +26,11 @@ This version can be merged into a **new branch** instead of the master branch, t
 - [ ] Add an option to review differences and last update date before overriding the remote web resource
 - [ ] Code cleansing, refactoring & commentation 
 - [ ] Stability tests
+
+### Highlights
+
+![Publishing Options](resources/ContextMenu.png)
+
+![Manage Connection Profiles ...](resources/ManageConnectionProfiles.png)
+
+![Publish to ...](resources/PublishTo.png)
