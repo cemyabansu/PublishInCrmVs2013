@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Linq;
 using System.Reflection;
 using System.ServiceModel.Description;
 using System.Threading;
@@ -78,8 +79,11 @@ namespace CemYabansu.PublishInCrm.Windows
             PasswordTextBox.Password = profile.Password;
 
             OrganizationsComboBox.Items.Clear();
-            OrganizationsComboBox.Items.Add(profile.OrganizationName);
-            OrganizationsComboBox.SelectedItem = profile.OrganizationName;
+            if (profile.OrganizationName != null)
+            {
+                OrganizationsComboBox.Items.Add(profile.OrganizationName);
+                OrganizationsComboBox.SelectedItem = profile.OrganizationName;
+            }
 
             // Editing an existing profile, we should be able to save.
             SaveButton.IsEnabled = true;
@@ -94,13 +98,28 @@ namespace CemYabansu.PublishInCrm.Windows
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            //System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionStringTag, isDefault));
+            // Update the profile and save changes.
             Update(SelectedProfile);
+            ProfileManager.SaveChanges();
+
+            // Backup the selected profile tag
+            string tag = SelectedProfile.Tag;
+
+            InitializeProfileList();
+
+            // Re-select the profile.
+            ConnectionStringCombobox.SelectedItem = tag;
+        }
+
+        private void TestConnection_Click(object sender, RoutedEventArgs e)
+        {
+            //System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString(selectedOrganizationUrl, selectedConnectionStringTag, isDefault));            
             System.Threading.Tasks.Task.Factory.StartNew(() => SaveConnectionString());
         }
 
         private void Update(ConnectionProfile profile)
         {
+            profile.Tag = !string.IsNullOrEmpty(ConnectionStringCombobox.Text) ? ConnectionStringCombobox.Text : profile.Tag;
             profile.IsDefault = DefaultProfileCheckBox.IsChecked ?? false;
             profile.ServerUrl = ServerTextBox.Text;
             profile.Port = PortTextBox.Text;
@@ -126,7 +145,7 @@ namespace CemYabansu.PublishInCrm.Windows
                 return;
             }
 
-            ProfileManager.SaveChanges();
+            //ProfileManager.SaveChanges();
 
             Dispatcher.Invoke(Close);
         }
@@ -485,6 +504,43 @@ namespace CemYabansu.PublishInCrm.Windows
 
             if (profile != null)
             {
+                InitializeInputs(profile);
+            }
+        }
+
+        private void IfdCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            SslCheckBox.IsChecked = true;
+            SslCheckBox.IsEnabled = false;
+        }
+
+        private void IfdCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            SslCheckBox.IsEnabled = true;
+        }
+
+        private void AddNewButton_Click(object sender, RoutedEventArgs e)
+        {
+            var profile = new ConnectionProfile()
+            {
+                Tag = "New Profile"
+            };
+
+            ProfileManager.Profiles.Add(profile);
+            ConnectionStringCombobox.Items.Add(profile.Tag);
+            ConnectionStringCombobox.SelectedItem = profile.Tag;
+        }
+
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            string tag = (string) ConnectionStringCombobox.SelectedItem;
+
+            ProfileManager.Remove(tag);
+            ConnectionStringCombobox.Items.Remove(tag);
+            if (ProfileManager.Count > 0)
+            {
+                var profile = ProfileManager.Profiles.Last();
+                ConnectionStringCombobox.SelectedItem = profile.Tag;
                 InitializeInputs(profile);
             }
         }
