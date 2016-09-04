@@ -1,13 +1,36 @@
-# PublishInCrm - Update and Publish Webresources in CRM with Visual Studio
-Visual Studio Extension to Update and Publish webresources(js,html,css) directly from Visual Studio. All you have to do, just right click the the file and click 'Publish In Crm' command.
-</br>Here, you can see how easy to use(click the .gif for full size).
+# PublishInCRM - Create, update and publish Webresources in CRM with Visual Studio
 
-![alt tag](https://raw.githubusercontent.com/cemyabansu/PublishInCrm/master/gifs/howtouse.gif)
+PublishInCRM is a Visual Studio Extension that allows developers to create, update and publish their web resources (such as js, html, css files) to one or more Microsoft Dynamics CRM environments directly within Visual Studio.
 
-### You can create new webresource.
+Please go to [the original repository for the full readme](https://github.com/cemyabansu/PublishInCrm).
 
-![alt tag](https://raw.githubusercontent.com/cemyabansu/PublishInCrm/master/gifs/howtocreate.gif)
+![Preview](resources/preview.png)
 
-### You can update and publish multiple webresources by selecting from solution explorer.
+### Changes from the original version 
 
-![alt tag](https://raw.githubusercontent.com/cemyabansu/PublishInCrm/master/gifs/howtomultiple.gif)
+- Added multiple environment feature
+- Enhanced the connection settings screen to support multiple connection profiles
+- Separated the output window from the main class to allow multiple publish threads to be created.
+- Create/Delete publish profiles easily, no more XML involvement.
+
+### Install
+
+See [releases](https://github.com/seckin92/PublishInCrm/releases).
+
+### To-do
+
+- [x] Allow users to modify the connection info through the GUI.
+- [x] Allow users to create and delete connection profiles
+- [x] Publish to one or more environments simultaneously
+- [x] Add support for multiple Visual Studio versions
+- [ ] Add an option to review differences and last update date before overriding the remote web resource
+- [ ] Code cleansing, refactoring & commentation 
+- [ ] Stability tests
+
+### Highlights
+
+![Publishing Options](resources/ContextMenu.png)
+
+![Manage Connection Profiles ...](resources/ManageConnectionProfiles.png)
+
+![Publish to ...](resources/PublishTo.png)

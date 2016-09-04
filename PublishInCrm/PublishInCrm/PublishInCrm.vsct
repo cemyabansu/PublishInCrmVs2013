@@ -11,82 +11,168 @@
   <Commands package="guidPublishInCrmPkg">
 
     <Groups>
+      <Group guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x400">
+      </Group>
+
+      <Group guid="guidPublishInCrmCmdSet" id="MySolutionMenuGroup" priority="0x400">
+      </Group>
+      
       <Group guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x600">
+        <Parent guid="guidPublishInCrmCmdSet" id="publishInCrmMenu" />
       </Group>
 
       <Group guid="guidPublishInCrmCmdSet" id="MySolutionGroup" priority="0x600">
+        <Parent guid="guidPublishInCrmCmdSet" id="publishInCrmMenuMultiple" />
       </Group>
     </Groups>
 
+    <Menus>
+      <Menu guid="guidPublishInCrmCmdSet" id="publishInCrmMenu" type="Menu" priority="0x0100">
+        <Parent guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" />
+        <CommandFlag>IconAndText</CommandFlag>
+        <Strings>
+          <ButtonText>Publishing Options</ButtonText>
+          <CommandName>Publishing Options</CommandName>
+        </Strings>
+      </Menu>
+      <Menu guid="guidPublishInCrmCmdSet" id="publishInCrmMenuMultiple" type="Menu" priority="0x0100">
+        <Parent guid="guidPublishInCrmCmdSet" id="MySolutionMenuGroup" />
+        <CommandFlag>IconAndText</CommandFlag>
+        <Strings>
+          <ButtonText>Publishing Options</ButtonText>
+          <CommandName>Publishing Options</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+    
     <Buttons>
+
+
       <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishInCrm" priority="0x0100" type="Button">
+        <Parent guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" />
+        <!--Will be used later for button visibility.-->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Publish in CRM</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishInCrmMultiple" priority="0x0100" type="Button">
+        <Parent guid="guidPublishInCrmCmdSet" id="MySolutionMenuGroup" />
+        <!--Will be used later for button visibility.-->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Publish in CRM</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishInDefaultOrganization" priority="0x0100" type="Button">
         <Parent guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" />
         <!--Will be used later for button visibility.-->
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Publish In Crm</ButtonText>
+          <ButtonText>Publish in the default organization</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishInCrmMultiple" priority="0x0100" type="Button">
+
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishIn" priority="0x0101" type="Button">
+        <Parent guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" />
+        <!--Will be used later for button visibility.-->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Publish in ...</ButtonText>
+        </Strings>
+      </Button>
+
+
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidManageConnectionProfiles" priority="0x0102" type="Button">
+        <Parent guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" />
+        <!--Will be used later for button visibility.-->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Manage Connection Profiles ...</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishInDefaultOrganizationMultiple" priority="0x0100" type="Button">
         <Parent guid="guidPublishInCrmCmdSet" id="MySolutionGroup" />
         <!--Will be used later for button visibility.-->
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Publish In Crm</ButtonText>
+          <ButtonText>Publish in the default organization</ButtonText>
         </Strings>
       </Button>
+
+
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidPublishInMultiple" priority="0x0101" type="Button">
+        <Parent guid="guidPublishInCrmCmdSet" id="MySolutionGroup" />
+        <!--Will be used later for button visibility.-->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Publish in ...</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidPublishInCrmCmdSet" id="cmdidManageConnectionProfilesMultiple" priority="0x0102" type="Button">
+        <Parent guid="guidPublishInCrmCmdSet" id="MySolutionGroup" />
+        <!--Will be used later for button visibility.-->
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Manage Connection Profiles ...</ButtonText>
+        </Strings>
+      </Button>
+      
     </Buttons>
 
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MySolutionGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MySolutionMenuGroup" priority="0x0600">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
     </CommandPlacement>
-
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="CssEditorWindows" id="IDMX_HTM_SOURCE_CSS" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_BASIC" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_HTML" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_SCRIPT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASPX" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASPX_CODE" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASAX_CODE" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASPX_CODE_VB" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASAX_CODE_VB" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASMX_CODE" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindows" id="IDMX_HTM_SOURCE_ASMX_CODE_VB" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="XamlEditorWindows" id="IDMX_XAML_SOURCE_BASIC" />
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="HtmlEditorWindowLibra" id="IDMX_HTML_SOURCE"/>
     </CommandPlacement>
-    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxGroup" priority="0x0600">
+    <CommandPlacement guid="guidPublishInCrmCmdSet" id="MyEditorCtxMenuGroup" priority="0x0600">
       <Parent guid="CssEditorWindows2" id="IDMX_CSS_SOURCE"/>
     </CommandPlacement>
 
@@ -97,10 +183,22 @@
     <GuidSymbol name="guidPublishInCrmPkg" value="{6711515a-26fc-4cb7-b55b-3c7f0e18daa3}" />
 
     <GuidSymbol name="guidPublishInCrmCmdSet" value="{60edb5ab-a9f3-4c04-9352-9057c5463815}">
+
+      <IDSymbol name="MyEditorCtxMenuGroup" value="0x1020"/>
+      <IDSymbol name="MySolutionMenuGroup" value="0x1021"/>
+      <IDSymbol name="publishInCrmMenu" value="0x1022"/>
+      <IDSymbol name="publishInCrmMenuMultiple" value="0x1023"/>
       <IDSymbol name="MyEditorCtxGroup" value="0x1030" />
       <IDSymbol name="cmdidPublishInCrm" value="0x0100" />
+      <IDSymbol name="cmdidPublishIn" value="0x0101" />
+      <IDSymbol name="cmdidManageConnectionProfiles" value="0x0102" />
+      <IDSymbol name="cmdidPublishInDefaultOrganization" value="0x0103" />
       <IDSymbol name="MySolutionGroup" value="0x1040" />
       <IDSymbol name="cmdidPublishInCrmMultiple" value="0x0110" />
+      <IDSymbol name="cmdidPublishInMultiple" value="0x0111" />
+      <IDSymbol name="cmdidManageConnectionProfilesMultiple" value="0x0112" />
+      <IDSymbol name="cmdidPublishInDefaultOrganizationMultiple" value="0x0113" />
+
     </GuidSymbol>
 
     <GuidSymbol name="HtmlEditorWindowLibra" value="{78F03954-2FB8-4087-8CE7-59D71710B3BB}">
