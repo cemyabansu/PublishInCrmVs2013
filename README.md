@@ -22,5 +22,10 @@ This version can be merged into a **new branch** instead of the master branch, t
 
 ### To-do
 
-- Allow users to create and delete connection profiles
-- Option to review differences and last update date before overriding the remote web resource
+- [x] Allow users to modify the connection info through the GUI.
+- [x] Allow users to create and delete connection profiles
+- [x] Publish to one or more environments simultaneously
+- [x] Add support for multiple Visual Studio versions
+- [ ] Add an option to review differences and last update date before overriding the remote web resource
+- [ ] Code cleansing, refactoring & commentation 
+- [ ] Stability tests
